@@ -1,49 +1,58 @@
-import { galleryItems } from './gallery-items.js';
+import { galleryItems } from "./gallery-items.js";
 // Change code below this line
-const gallery = document.querySelector('.gallery')
 
-function createGallaryMarkup(items){
-    return items.map((item)=>`<div class="gallery__item">
-    <a class="gallery__link" href="${item.original}">
-    <img class="gallery__image"
-    src="${item.preview}"
-    data-source="${item.original}"
-    alt="${item.description}"/>
-    </a>
-    </div>`).join("");
+const galleryEl = document.querySelector(".gallery");
+const galleryItemMarkup = creatGalleryMarkup(galleryItems);
+galleryEl.insertAdjacentHTML("beforeend", galleryItemMarkup);
+
+function creatGalleryMarkup(galleryItems) {
+  return galleryItems
+    .map(({ preview, original, description }) => {
+      return `<div class="gallery__item">
+         <a class="gallery__link" href="${original}">
+          <img
+            class="gallery__image"
+             src="${preview}"
+            data-source="${original}"
+             alt="${description}"
+         />
+         </a>
+       </div>`;
+    })
+    .join("");
 }
-const addGallaryMarkup = createGallaryMarkup(galleryItems);
-gallery.innerHTML=addGallaryMarkup;
-gallery.addEventListener('click',onImageClick);
-function onImageClick(evt){
-blockStandartAction(evt);
-if (evt.target.nodeName!=="img") {
+
+galleryEl.addEventListener("click", openImgModal);
+
+function openImgModal(event) {
+  event.preventDefault();
+  if (!event.target.classList.contains("gallery__image")) {
     return;
-}
-const instance=basicLightbox.create(`<img src="${evt.target.dataset.source}" width="800" height="600"`);
-instance.show();
-gallery.addEventListener("keydown",(evt)=>{
-    if(evt.code==="Escape"){
-        instance.close();
-    }
-}
-);
-}
-function blockStandartAction(evt){
-    evt.preventDefault();
- } 
+  }
+  const imgUrlOriganal = event.target.dataset.source;
 
-//  galleryItems.forEach(({preview,description})=>{
-//     const img = document.createElement('img')
-//     img.src = preview;
-//     img.alt= description;
-//     img.style.cssText='width:360px;height:240px;'
-//     gallery.append(img);
-//     })
-//     import * as basicLightbox from 'basiclightbox'
-    
-//     const instance = basicLightbox.create(`
-//         <img src="assets/images/image.png" width="800" height="600">
-//     `)
-    
-//     instance.show()
+  const instance = basicLightbox.create(
+    `
+    <div class="modal">
+       <img src="${imgUrlOriganal}" width="800" height="600">
+       <a>Close</a>
+    </div>
+`,
+    {
+      onShow: () => {
+        document.addEventListener("keyup", onEscClose);
+      },
+      onClose: () => {
+        document.removeEventListener("keyup", onEscClose);
+      },
+    }
+  );
+
+  function onEscClose(evt) {
+    if (evt.key === "Escape") {
+      instance.close();
+    }
+  }
+
+  instance.show();
+}
